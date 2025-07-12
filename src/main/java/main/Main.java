@@ -10,7 +10,6 @@ import static org.lwjgl.opengl.GL30.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Main {
-    // usando OpenGL 3.3.6
     private static long window;
 
     private static final String vertexShaderSourceCode = """
@@ -36,11 +35,80 @@ public class Main {
 
     private static void loop() {
         float[] vertices = {
-                -0.5f, -0.5f, 0.0f,
-                0.5f, -0.5f, 0.0f,
-                0.0f, 0.5f, 0.0f
+                0.5f, 0.5f, 0.0f,  // top right
+                0.5f, -0.5f, 0.0f,  // bottom right
+                -0.5f, -0.5f, 0.0f,  // bottom left
+                -0.5f, 0.5f, 0.0f   // top left
         };
 
+        int[] indices = {
+                0, 1, 3,
+                1, 2, 3
+        };
+
+        int shaderProgram = generateShaderProgram();
+
+        // Gerando um (Vertex Array Object - VAO) /  (Vertex Buffer Object - VBO) / (Element Buffer Object - EBO) pro OpenGL usar
+        int vertexArrayObject = glGenVertexArrays();
+        int vertexBufferObject = glGenBuffers();
+        int elementBufferObject = glGenBuffers();
+
+        glBindVertexArray(vertexArrayObject);
+
+        glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
+        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBufferObject);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
+
+        // especificando para o OpenGL copmo ele deve interpretar o vertex data que vamos criar
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * Float.BYTES, 0);
+        glEnableVertexAttribArray(0);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        glBindVertexArray(0);
+
+        while (!glfwWindowShouldClose(window)) {
+            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            glUseProgram(shaderProgram);
+            glBindVertexArray(vertexArrayObject);
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+            glfwSwapBuffers(window);
+            glfwPollEvents();
+        }
+
+        glDeleteVertexArrays(vertexArrayObject);
+        glDeleteBuffers(vertexBufferObject);
+        glDeleteProgram(shaderProgram);
+
+        glfwTerminate();
+    }
+
+    private static void init() {
+        if (!glfwInit()) {
+            System.out.println("Failed to initialize GLFW");
+        }
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
+
+        window = glfwCreateWindow(800, 600, "Learning OpenGL", NULL, NULL);
+        if (window == NULL) {
+            System.out.println("I failed to create a window");
+            glfwTerminate();
+        }
+
+        glfwMakeContextCurrent(window);
+        glfwShowWindow(window);
+        GL.createCapabilities();
+    }
+
+    private static int generateShaderProgram(){
         // Criando vertex shader object && fragment shader object
         int vertexShaderObject = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(vertexShaderObject, vertexShaderSourceCode);
@@ -73,62 +141,7 @@ public class Main {
 
         glDeleteShader(vertexShaderObject);
         glDeleteShader(fragmentShaderObject);
-
-
-        // Gerando um Vertex Array Object /  (Vertex Buffer Object - VBO) pro OpenGL usar
-        int vertexArrayObject = glGenVertexArrays();
-        int vertexBufferObject = glGenBuffers();
-
-        glBindVertexArray(vertexArrayObject);
-
-        glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
-        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW);
-
-        // especificando para o OpenGL copmo ele deve interpretar o vertex data que vamos criar
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * Float.BYTES, 0);
-        glEnableVertexAttribArray(0);
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        glBindVertexArray(0);
-
-        while (!glfwWindowShouldClose(window)) {
-            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT);
-
-            glUseProgram(shaderProgram);
-            glBindVertexArray(vertexArrayObject);
-            glDrawArrays(GL_TRIANGLES, 0, 3);
-
-            glfwSwapBuffers(window);
-            glfwPollEvents();
-        }
-
-        glDeleteVertexArrays(vertexArrayObject);
-        glDeleteBuffers(vertexBufferObject);
-        glDeleteProgram(shaderProgram);
-
-        glfwTerminate();
-    }
-
-    private static void init() {
-        if (!glfwInit()) {
-            System.out.println("Failed to initialize GLFW");
-        }
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
-
-        window = glfwCreateWindow(800, 600, "Learning OpenGL", NULL, NULL);
-        if (window == NULL) {
-            System.out.println("I failed to create a window");
-            glfwTerminate();
-        }
-
-        glfwMakeContextCurrent(window);
-        glfwShowWindow(window);
-        GL.createCapabilities();
+        return shaderProgram;
     }
 
 
