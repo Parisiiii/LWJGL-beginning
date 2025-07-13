@@ -36,44 +36,17 @@ public class Main {
 
     private static void loop() {
         float[] vertices = {
-                -0.5f, -0.5f, 0.0f,
-                0.5f, -0.5f, 0.0f,
-                0.0f, 0.5f, 0.0f
+             //   x      y     z
+                -1f, -0.6f, 0.0f, // left bottom
+                0.0f, -0.6f, 0.0f,  // right bottom
+                -0.5f, 0.5f, 0.0f,    // top
+
+                0.0f, -0.6f, 0.0f, // left bottom
+                1f, -0.6f, 0.0f,  // right bottom
+                0.5f, 0.5f, 0.0f    // top
         };
 
-        // Criando vertex shader object && fragment shader object
-        int vertexShaderObject = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vertexShaderObject, vertexShaderSourceCode);
-        glCompileShader(vertexShaderObject);
-
-        // Checando por erros de compilacao do meu shader
-        int sucessVertexShader = glGetShaderi(vertexShaderObject, GL_COMPILE_STATUS);
-        if (sucessVertexShader != GL_TRUE) {
-            String infoLog = glGetShaderInfoLog(vertexShaderObject);
-            System.err.println("FAILED VERTEX SHADER CODE\n" + infoLog);
-        }
-
-
-        int fragmentShaderObject = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fragmentShaderObject, fragmentSourceColorShader);
-        glCompileShader(fragmentShaderObject);
-
-        int successShaderFragment = glGetShaderi(fragmentShaderObject, GL_COMPILE_STATUS);
-        if (successShaderFragment == GL_FALSE) {
-            String infoLog = glGetShaderInfoLog(fragmentShaderObject);
-            System.err.println("FAILED FRAGMENT SHADER CODE\n" + infoLog);
-        }
-
-        // Criando shader program e usando ele
-        int shaderProgram = glCreateProgram();
-        glAttachShader(shaderProgram, vertexShaderObject);
-        glAttachShader(shaderProgram, fragmentShaderObject);
-
-        glLinkProgram(shaderProgram);
-
-        glDeleteShader(vertexShaderObject);
-        glDeleteShader(fragmentShaderObject);
-
+        int shaderProgram = generateShaders();
 
         // Gerando um Vertex Array Object /  (Vertex Buffer Object - VBO) pro OpenGL usar
         int vertexArrayObject = glGenVertexArrays();
@@ -98,7 +71,7 @@ public class Main {
 
             glUseProgram(shaderProgram);
             glBindVertexArray(vertexArrayObject);
-            glDrawArrays(GL_TRIANGLES, 0, 3);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
 
             glfwSwapBuffers(window);
             glfwPollEvents();
@@ -129,6 +102,44 @@ public class Main {
         glfwMakeContextCurrent(window);
         glfwShowWindow(window);
         GL.createCapabilities();
+    }
+
+
+    private static int generateShaders() {
+        // Criando vertex shader object && fragment shader object
+        int vertexShaderObject = glCreateShader(GL_VERTEX_SHADER);
+        glShaderSource(vertexShaderObject, vertexShaderSourceCode);
+        glCompileShader(vertexShaderObject);
+
+        // Checando por erros de compilacao do meu shader
+        int sucessVertexShader = glGetShaderi(vertexShaderObject, GL_COMPILE_STATUS);
+        if (sucessVertexShader != GL_TRUE) {
+            String infoLog = glGetShaderInfoLog(vertexShaderObject);
+            System.err.println("FAILED VERTEX SHADER CODE\n" + infoLog);
+        }
+
+
+        int fragmentShaderObject = glCreateShader(GL_FRAGMENT_SHADER);
+        glShaderSource(fragmentShaderObject, fragmentSourceColorShader);
+        glCompileShader(fragmentShaderObject);
+
+        // Checando por erros de compilacao do meu shader
+        int successShaderFragment = glGetShaderi(fragmentShaderObject, GL_COMPILE_STATUS);
+        if (successShaderFragment == GL_FALSE) {
+            String infoLog = glGetShaderInfoLog(fragmentShaderObject);
+            System.err.println("FAILED FRAGMENT SHADER CODE\n" + infoLog);
+        }
+
+        // Criando shader program e usando ele
+        int shaderProgram = glCreateProgram();
+        glAttachShader(shaderProgram, vertexShaderObject);
+        glAttachShader(shaderProgram, fragmentShaderObject);
+
+        glLinkProgram(shaderProgram);
+
+        glDeleteShader(vertexShaderObject);
+        glDeleteShader(fragmentShaderObject);
+        return shaderProgram;
     }
 
 
